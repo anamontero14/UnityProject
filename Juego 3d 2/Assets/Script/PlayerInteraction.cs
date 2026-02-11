@@ -4,37 +4,32 @@ using UnityEngine.InputSystem;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    [Header("UI")]
     public TextMeshProUGUI monedas;
+    public TextMeshProUGUI mensajeInteraccion;
 
     private int cantidadMonedas = 0;
-    private bool aviso = false;
     private bool cercaDelCofre = false;
+    private CofreController cofreActual = null;
 
     void Start()
     {
-        monedas.text = "Souls collected: " + cantidadMonedas;
+        if (monedas != null)
+            monedas.text = "Souls collected: " + cantidadMonedas;
+
+        if (mensajeInteraccion != null)
+            mensajeInteraccion.gameObject.SetActive(false);
     }
 
     void Update()
     {
-        // Agacharse
-        transform.localScale = new Vector3(1f, (Keyboard.current.fKey.isPressed) ? 0.5f : 1f, 1f);
+        transform.localScale = new Vector3(1f, (Keyboard.current != null && Keyboard.current.fKey.isPressed) ? 0.5f : 1f, 1f);
 
-        // Depositar en cofre al pulsar E (solo si estás cerca)
         if (cercaDelCofre && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            DepositarAlmas();
-        }
-
-        if (cantidadMonedas == 10 && !aviso)
-        {
-            Debug.Log("Tienes que depositar las almas en el cofre");
-            aviso = true;
+            AbrirCofre();
         }
     }
 
-    // Llamado desde MonedasController cuando el jugador toca un alma
     public void DoInteraction(GameObject go)
     {
         if (go.CompareTag("Alma"))
@@ -50,19 +45,23 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    void DepositarAlmas()
+    void AbrirCofre()
     {
-        if (cantidadMonedas == 10)
+        if (cofreActual != null)
         {
-            cantidadMonedas = 0;
-            actualizarTexto();
-            aviso = false;
-            Debug.Log("¡Almas depositadas en el cofre!");
+            cofreActual.AbrirPanelCofre(this);
         }
-        else
-        {
-            Debug.Log($"Necesitas 10 almas. Tienes: {cantidadMonedas}");
-        }
+    }
+
+    public int ObtenerCantidadMonedas()
+    {
+        return cantidadMonedas;
+    }
+
+    public void VaciarMonedas()
+    {
+        cantidadMonedas = 0;
+        actualizarTexto();
     }
 
     void actualizarTexto()
@@ -71,13 +70,18 @@ public class PlayerInteraction : MonoBehaviour
             monedas.text = "Souls collected: " + cantidadMonedas;
     }
 
-    // Detectar si el jugador entra/sale del área del cofre
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Cofre"))
         {
             cercaDelCofre = true;
-            Debug.Log("Cerca del cofre. Pulsa E para depositar.");
+            cofreActual = other.GetComponent<CofreController>();
+
+            if (mensajeInteraccion != null)
+            {
+                mensajeInteraccion.gameObject.SetActive(true);
+                mensajeInteraccion.text = "Presiona [E] para abrir el cofre";
+            }
         }
     }
 
@@ -86,6 +90,27 @@ public class PlayerInteraction : MonoBehaviour
         if (other.CompareTag("Cofre"))
         {
             cercaDelCofre = false;
+            cofreActual = null;
+
+            if (mensajeInteraccion != null)
+            {
+                mensajeInteraccion.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void PerderAlma()
+    {
+        if (cantidadMonedas > 0)
+        {
+            cantidadMonedas--;
+            actualizarTexto();
+
+            PlayerController pc = GetComponent<PlayerController>();
+            if (pc != null)
+            {
+                pc.TriggerHitAnimation();
+            }
         }
     }
 }

@@ -6,22 +6,38 @@ public class EnemyController : MonoBehaviour
     public Transform player;
     public NavMeshAgent agent;
     public float enemigoVidas = 5f;
+    private float cooldownAtaque = 2f;
+    private float timerAtaque = 0f;
 
-    // Update is called once per frame
     void Update()
     {
-        float distancia = Vector3.Distance(transform.position, player.position);
-        Vector3 direccion = (player.position - transform.position).normalized;
+        if (timerAtaque > 0f)
+        {
+            timerAtaque -= Time.deltaTime;
+        }
 
-        if (distancia < 15f)
-        { // Rango de visión
-            if (Physics.Raycast(transform.position, direccion, out RaycastHit hit, 15f))
+        if (player == null) return;
+
+        float distancia = Vector3.Distance(transform.position, player.position);
+
+        if (distancia < 1.5f && timerAtaque <= 0f)
+        {
+            PlayerInteraction pi = player.GetComponent<PlayerInteraction>();
+            if (pi != null)
             {
-                /*if (hit.collider.CompareTag("Player"))
+                if (pi.ObtenerCantidadMonedas() > 0)
                 {
-                    Debug.Log("¡Jugador detectado!");
-                    // Aquí activaremos el movimiento
-                }*/
+                    pi.PerderAlma();
+                }
+                else
+                {
+                    PlayerController pc = player.GetComponent<PlayerController>();
+                    if (pc != null)
+                    {
+                        pc.MorirPorAlmas();
+                    }
+                }
+                timerAtaque = cooldownAtaque;
             }
         }
 
@@ -30,14 +46,49 @@ public class EnemyController : MonoBehaviour
 
     void PerseguirJugador()
     {
-        // El agente calcula automáticamente la ruta más corta
-        agent.SetDestination(player.position);
+        if (agent != null && player != null)
+        {
+            agent.SetDestination(player.position);
+        }
     }
 
     public void RecibirDaño(float damage)
     {
         enemigoVidas -= damage;
+
+        if (enemigoVidas <= 0f)
+        {
+            Morir();
+        }
     }
 
+    void Morir()
+    {
+        if (agent != null) agent.enabled = false;
+        Destroy(gameObject);
+    }
 
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player") && timerAtaque <= 0f)
+        {
+            PlayerInteraction pi = other.GetComponent<PlayerInteraction>();
+            if (pi != null)
+            {
+                if (pi.ObtenerCantidadMonedas() > 0)
+                {
+                    pi.PerderAlma();
+                }
+                else
+                {
+                    PlayerController pc = other.GetComponent<PlayerController>();
+                    if (pc != null)
+                    {
+                        pc.MorirPorAlmas();
+                    }
+                }
+                timerAtaque = cooldownAtaque;
+            }
+        }
+    }
 }
