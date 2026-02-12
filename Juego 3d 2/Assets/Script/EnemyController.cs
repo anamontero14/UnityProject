@@ -6,8 +6,14 @@ public class EnemyController : MonoBehaviour
     public Transform player;
     public NavMeshAgent agent;
     public float enemigoVidas = 5f;
+
+    [Header("Comportamiento")]
+    public float rangoDeteccion = 10f;  // Distancia a la que detecta al jugador
+    public float rangoAtaque = 1.5f;    // Distancia para atacar
+
     private float cooldownAtaque = 2f;
     private float timerAtaque = 0f;
+    private bool jugadorDetectado = false;
 
     void Update()
     {
@@ -20,35 +26,57 @@ public class EnemyController : MonoBehaviour
 
         float distancia = Vector3.Distance(transform.position, player.position);
 
-        if (distancia < 1.5f && timerAtaque <= 0f)
+        // Detectar si el jugador está en rango
+        if (distancia <= rangoDeteccion)
         {
-            PlayerInteraction pi = player.GetComponent<PlayerInteraction>();
-            if (pi != null)
+            jugadorDetectado = true;
+
+            // Si está muy cerca, atacar
+            if (distancia < rangoAtaque && timerAtaque <= 0f)
             {
-                if (pi.ObtenerCantidadMonedas() > 0)
-                {
-                    pi.PerderAlma();
-                }
-                else
-                {
-                    PlayerController pc = player.GetComponent<PlayerController>();
-                    if (pc != null)
-                    {
-                        pc.MorirPorAlmas();
-                    }
-                }
-                timerAtaque = cooldownAtaque;
+                Atacar();
+            }
+
+            // Perseguir mientras esté en rango
+            PerseguirJugador();
+        }
+        else
+        {
+            // Si sale del rango, dejar de perseguir
+            jugadorDetectado = false;
+            if (agent != null && agent.hasPath)
+            {
+                agent.ResetPath(); // Detener el movimiento
             }
         }
-
-        PerseguirJugador();
     }
 
     void PerseguirJugador()
     {
-        if (agent != null && player != null)
+        if (agent != null && player != null && jugadorDetectado)
         {
             agent.SetDestination(player.position);
+        }
+    }
+
+    void Atacar()
+    {
+        PlayerInteraction pi = player.GetComponent<PlayerInteraction>();
+        if (pi != null)
+        {
+            if (pi.ObtenerCantidadMonedas() > 0)
+            {
+                pi.PerderAlma();
+            }
+            else
+            {
+                PlayerController pc = player.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.MorirPorAlmas();
+                }
+            }
+            timerAtaque = cooldownAtaque;
         }
     }
 
@@ -72,23 +100,17 @@ public class EnemyController : MonoBehaviour
     {
         if (other.CompareTag("Player") && timerAtaque <= 0f)
         {
-            PlayerInteraction pi = other.GetComponent<PlayerInteraction>();
-            if (pi != null)
-            {
-                if (pi.ObtenerCantidadMonedas() > 0)
-                {
-                    pi.PerderAlma();
-                }
-                else
-                {
-                    PlayerController pc = other.GetComponent<PlayerController>();
-                    if (pc != null)
-                    {
-                        pc.MorirPorAlmas();
-                    }
-                }
-                timerAtaque = cooldownAtaque;
-            }
+            Atacar();
         }
+    }
+
+    // Para visualizar el rango de detección en el editor
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, rangoDeteccion);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, rangoAtaque);
     }
 }

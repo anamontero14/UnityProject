@@ -16,6 +16,25 @@ public class MenuPantallas : MonoBehaviour
             panelControles.SetActive(false);
     }
 
+    // Ir a la pantalla de historia (cursor visible)
+    public void MostrarHistoria()
+    {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("PantallaHistoria");
+    }
+
+    // Ir a la pantalla de controles (cursor visible)
+    public void MostrarControles()
+    {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("PantallaControles");
+    }
+
+    // Desde la pantalla de historia, continuar al juego
     public void Jugar()
     {
         Time.timeScale = 1f;
@@ -24,6 +43,7 @@ public class MenuPantallas : MonoBehaviour
         SceneManager.LoadScene("Scene2");
     }
 
+    // Reintentar desde pantallas de Perder/Ganar
     public void JugarDeNuevo()
     {
         Time.timeScale = 1f;
@@ -32,8 +52,10 @@ public class MenuPantallas : MonoBehaviour
         SceneManager.LoadScene("Scene2");
     }
 
+    // Volver al menú principal desde cualquier pantalla
     public void VolverAlMenu()
     {
+        // Si hay un panel de controles abierto, cerrarlo primero
         if (panelControles != null && panelControles.activeSelf)
         {
             panelControles.SetActive(false);
@@ -46,19 +68,9 @@ public class MenuPantallas : MonoBehaviour
         SceneManager.LoadScene("PantallaInicio");
     }
 
-    public void MostrarControles()
-    {
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        SceneManager.LoadScene("PantallaControles");
-    }
-
+    // Salir del juego
     public void Salir()
     {
         Application.Quit();
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
     }
 }

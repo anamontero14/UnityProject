@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PantallaControles.unity
     guid: 5711255ab873d024cb7ee86e9d9d5b47
+  - enabled: 1
+    path: Assets/Scenes/PantallaHistoria.unity
+    guid: e1572e9d0574a8840ac7ba62bb9dcf2e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

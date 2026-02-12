@@ -687,7 +687,6 @@ MonoBehaviour:
   barraProgreso: {fileID: 1522158501}
   botonCerrar: {fileID: 1342210804}
   botonDepositar: {fileID: 524787364}
-  panelVictoria: {fileID: 0}
 --- !u!1 &279507843
 GameObject:
   m_ObjectHideFlags: 0
